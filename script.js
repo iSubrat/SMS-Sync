@@ -245,6 +245,27 @@ async function tryRestoreSession() {
       showApp();
       await loadList();
     } else {
+      // Attempt auto-login if credentials were remembered
+      const savedEmail = localStorage.getItem('sms_remember_email');
+      const savedPass = localStorage.getItem('sms_remember_pass');
+      if (savedEmail && savedPass) {
+        try {
+          const resp = await apiPost('/login', {
+            email: savedEmail,
+            password: atob(savedPass),
+            remember: true
+          });
+          setCSRF(resp.csrfToken);
+          state.user = { email: savedEmail };
+          settingsEmail.textContent = savedEmail;
+          showApp();
+          await loadList();
+          return;
+        } catch {
+          // If auto-login fails, clear stored credentials
+          localStorage.removeItem('sms_remember_pass');
+        }
+      }
       showLogin();
     }
   } catch {
@@ -953,8 +974,11 @@ loginForm.addEventListener('submit', async (e) => {
     const resp = await apiPost('/login', { email, password, remember: true });
     if (rememberMeChk.checked) {
       localStorage.setItem('sms_remember_email', email);
+      // Store password encoded so we can auto-login later
+      localStorage.setItem('sms_remember_pass', btoa(password));
     } else {
       localStorage.removeItem('sms_remember_email');
+      localStorage.removeItem('sms_remember_pass');
     }
     setCSRF(resp.csrfToken);
     state.user = { email };
@@ -1054,6 +1078,8 @@ menuLogout.addEventListener('click', async () => {
   try { await apiPost('/logout', { csrfToken: state.csrfToken }); } catch {}
   state.user = null;
   setCSRF(null);
+  // Clear remembered password on manual logout
+  localStorage.removeItem('sms_remember_pass');
   // Clear UI
   showLogin();
 });
@@ -1065,6 +1091,7 @@ signOutBtn.addEventListener('click', async (e) => {
   settingsDialog.close();
   state.user = null;
   setCSRF(null);
+  localStorage.removeItem('sms_remember_pass');
   showLogin();
 });
 
@@ -1100,10 +1127,12 @@ refreshFab.addEventListener('click', () => loadList({ showSkeleton: false }));
 scrollTopFab.addEventListener('click', () => listPane.scrollTo({ top: 0, behavior: 'smooth' }));
 
 // About link on login
-aboutLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  alert('SMS Sync is a demo web app to view your synced SMS.\nUse the demo login to explore.');
-});
+if (aboutLink) {
+  aboutLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    alert('SMS Sync is a demo web app to view your synced SMS.\nUse the demo login to explore.');
+  });
+}
 
 /* ------------------------------
    Helper: Escape HTML
