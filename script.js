@@ -39,7 +39,8 @@ async function apiPost(path, body = {}) {
   const payload = path === '/login' || path === '/session' ? body : { csrfToken: state.csrfToken, ...body };
   const res = await fetch(API_URL, {
     method: 'POST',
-    credentials: 'same-origin',
+    // Include credentials so PHP session cookies persist across page reloads
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ path, ...payload })
   });
