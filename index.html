@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="csrf-token" content="" />
+  <title>SMS Sync</title>
+
+  <!-- System font stack in CSS; Material Symbols for icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <noscript>
+    <style>
+      .requires-js { display:none !important; }
+      .noscript-msg { padding:1rem; background:#fee; color:#900; font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    </style>
+  </noscript>
+</head>
+<body>
+
+  <!-- ===== App Bar (hidden on Login) ===== -->
+  <header id="app-bar" class="app-bar requires-js" role="banner" aria-label="Top App Bar" hidden>
+    <div class="app-bar__left">
+      <img src="assets/logo-placeholder.png" alt="" class="logo" width="32" height="32" />
+      <span class="app-title">SMS Sync</span>
+    </div>
+    <div class="app-bar__right">
+      <button id="searchToggleBtn" class="icon-btn" aria-label="Search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      </button>
+
+      <button id="themeToggleBtn" class="icon-btn" aria-label="Toggle theme">
+        <span class="material-symbols-rounded" aria-hidden="true">dark_mode</span>
+      </button>
+
+      <div class="avatar" id="userAvatar" aria-label="Account menu trigger" role="button" tabindex="0">SG</div>
+      <button id="kebabBtn" class="icon-btn" aria-label="More">
+        <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+      </button>
+
+      <!-- Kebab dropdown -->
+      <menu id="appMenu" class="menu" role="menu" aria-label="App menu" hidden>
+        <button role="menuitem" id="menuSettings" class="menu-item">
+          <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+          Settings
+        </button>
+        <button role="menuitem" id="menuAbout" class="menu-item">
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+          About SMS Sync
+        </button>
+        <button role="menuitem" id="menuLogout" class="menu-item">
+          <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+          Sign out
+        </button>
+      </menu>
+    </div>
+  </header>
+
+  <!-- ===== Global Search Bar (collapsible on mobile) ===== -->
+  <section id="searchBar" class="search-bar requires-js" role="search" hidden>
+    <div class="search-field">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <input id="searchInput" type="search" inputmode="search" placeholder="Search sender, text, tags…" aria-label="Search messages" autocomplete="off" />
+      <button id="clearSearchBtn" class="icon-btn" aria-label="Clear search">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </div>
+    <div class="sort-toggle">
+      <button id="sortBtn" class="chip" aria-pressed="true" aria-label="Sort by newest first">
+        <span class="material-symbols-rounded" aria-hidden="true">swap_vert</span>
+        <span id="sortLabel">Newest</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== Tabs / Filters ===== -->
+  <nav id="tabs" class="tabs requires-js" aria-label="Message filters" hidden>
+    <button class="tab is-active" data-filter="all" role="tab" aria-selected="true">All</button>
+    <button class="tab" data-filter="unread" role="tab" aria-selected="false">Unread</button>
+    <button class="tab" data-filter="starred" role="tab" aria-selected="false">Starred</button>
+    <button class="tab" data-filter="archived" role="tab" aria-selected="false">Archived</button>
+    <button class="tab" data-filter="trash" role="tab" aria-selected="false">Trash</button>
+  </nav>
+
+  <!-- ===== Login View ===== -->
+  <main id="loginView" class="view view--login" role="main" aria-label="Login">
+    <section class="card login-card">
+      <div class="login-brand">
+        <img src="assets/logo-placeholder.png" alt="" width="56" height="56" />
+        <h1 class="brand-title">SMS Sync</h1>
+        <p class="brand-subtitle">Securely view your synced SMS</p>
+      </div>
+
+      <form id="loginForm" class="form" novalidate autocomplete="on" aria-describedby="loginHelp">
+        <div class="form-row">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+                 required placeholder="you@example.com" />
+          <div class="field-hint" id="emailHint" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="form-row">
+          <label for="password">Password</label>
+          <div class="password-field">
+            <input id="password" name="password" type="password" autocomplete="current-password"
+                   required placeholder="••••••••" />
+            <button type="button" id="togglePassword" class="icon-btn" aria-label="Show password">
+              <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+            </button>
+          </div>
+          <div class="field-hint" id="passwordHint" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="form-row form-row--inline">
+          <label class="checkbox">
+            <input id="rememberMe" type="checkbox" />
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <button id="loginBtn" class="btn btn-primary" type="submit" aria-label="Log in">Log in</button>
+
+        <div id="loginError" class="form-error" role="alert" aria-live="assertive" hidden></div>
+      </form>
+    </section>
+  </main>
+
+  <!-- ===== App View ===== -->
+  <main id="appView" class="view view--app requires-js" role="main" aria-label="Inbox" hidden>
+    <section class="two-pane">
+
+      <!-- Left: List Pane -->
+      <aside id="listPane" class="pane pane--list" aria-label="Message list" role="feed">
+        <!-- Pull-to-refresh indicator -->
+        <div id="ptr" class="ptr" aria-hidden="true">
+          <span class="material-symbols-rounded">south</span>
+          <span class="ptr-text">Pull to refresh</span>
+        </div>
+
+        <!-- Batch bar (appears when selecting) -->
+        <div id="batchBar" class="batch-bar" role="region" aria-label="Batch actions" hidden>
+          <div class="batch-count"><span id="batchCount">0</span> selected</div>
+          <div class="batch-actions">
+            <button class="icon-btn" data-batch="mark_read" aria-label="Mark read"><span class="material-symbols-rounded">drafts</span></button>
+            <button class="icon-btn" data-batch="mark_unread" aria-label="Mark unread"><span class="material-symbols-rounded">mark_email_unread</span></button>
+            <button class="icon-btn" data-batch="star" aria-label="Star"><span class="material-symbols-rounded">star</span></button>
+            <button class="icon-btn" data-batch="unstar" aria-label="Unstar"><span class="material-symbols-rounded">star_rate</span></button>
+            <button class="icon-btn" data-batch="archive" aria-label="Archive"><span class="material-symbols-rounded">archive</span></button>
+            <button class="icon-btn" data-batch="trash" aria-label="Move to trash"><span class="material-symbols-rounded">delete</span></button>
+          </div>
+          <button id="batchClose" class="icon-btn" aria-label="Close selection"><span class="material-symbols-rounded">close</span></button>
+        </div>
+
+        <!-- List container -->
+        <ul id="messageList" class="list" role="list">
+          <!-- Populated by script.js using the template below -->
+        </ul>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty" role="note" hidden>
+          <img src="assets/empty-state.svg" alt="" width="160" height="120" />
+          <h2 class="empty-title">No messages</h2>
+          <p class="empty-sub">Try a different filter or clear search.</p>
+          <button id="clearFiltersBtn" class="btn btn-secondary">Show All</button>
+        </div>
+
+        <!-- Skeletons while loading -->
+        <ul id="skeletonList" class="list list--skeleton" aria-hidden="true" hidden>
+          <li class="item-skel"></li>
+          <li class="item-skel"></li>
+          <li class="item-skel"></li>
+        </ul>
+      </aside>
+
+      <!-- Right: Details Pane -->
+      <section id="detailPane" class="pane pane--detail" aria-label="Message details">
+        <div id="detailHeader" class="detail-header" hidden>
+          <button id="backToListBtn" class="icon-btn show-on-mobile" aria-label="Back to list">
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          </button>
+          <div class="detail-title">
+            <h2 id="detailSender" class="sender-name">—</h2>
+            <div id="detailMeta" class="meta">—</div>
+          </div>
+          <div class="detail-actions">
+            <button id="detailStarBtn" class="icon-btn" aria-label="Star"><span class="material-symbols-rounded">star</span></button>
+            <button id="detailReadToggleBtn" class="icon-btn" aria-label="Mark read/unread"><span class="material-symbols-rounded">mark_email_unread</span></button>
+            <button id="detailArchiveBtn" class="icon-btn" aria-label="Archive"><span class="material-symbols-rounded">archive</span></button>
+            <button id="detailTrashBtn" class="icon-btn" aria-label="Move to trash"><span class="material-symbols-rounded">delete</span></button>
+            <button id="detailMoreBtn" class="icon-btn" aria-label="More"><span class="material-symbols-rounded">more_vert</span></button>
+            <menu id="detailMenu" class="menu" role="menu" aria-label="Detail menu" hidden>
+              <button role="menuitem" data-action="unarchive" class="menu-item">
+                <span class="material-symbols-rounded">unarchive</span>
+                Move to Inbox
+              </button>
+              <button role="menuitem" data-action="restore" class="menu-item">
+                <span class="material-symbols-rounded">restore_from_trash</span>
+                Restore from Trash
+              </button>
+              <button role="menuitem" data-action="delete_forever" class="menu-item danger">
+                <span class="material-symbols-rounded">delete_forever</span>
+                Delete forever
+              </button>
+            </menu>
+          </div>
+        </div>
+
+        <article id="detailBody" class="detail-body" hidden>
+          <div id="otpChip" class="otp-chip" hidden>
+            <span class="material-symbols-rounded" aria-hidden="true">password</span>
+            <span id="otpText">—</span>
+            <button id="copyOtpBtn" class="chip chip--action" aria-label="Copy OTP">Copy</button>
+          </div>
+
+          <pre id="detailText" class="message-text" aria-label="Message text"></pre>
+
+          <div class="detail-footer">
+            <button id="prevMsgBtn" class="btn btn-secondary" aria-label="Previous (j)">
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span> Prev
+            </button>
+            <button id="nextMsgBtn" class="btn btn-secondary" aria-label="Next (k)">
+              Next <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            </button>
+          </div>
+        </article>
+
+        <!-- Placeholder state for desktop when nothing selected -->
+        <div id="detailPlaceholder" class="detail-placeholder" role="note">
+          <span class="material-symbols-rounded">sms</span>
+          <p>Select a message to view details</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- Bottom action bar for mobile (contextual) -->
+    <div id="fabBar" class="fab-bar show-on-mobile" hidden>
+      <button class="fab" id="scrollTopFab" aria-label="Scroll to top">
+        <span class="material-symbols-rounded">vertical_align_top</span>
+      </button>
+      <button class="fab" id="refreshFab" aria-label="Refresh">
+        <span class="material-symbols-rounded">refresh</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ===== Settings Dialog ===== -->
+  <dialog id="settingsDialog" class="dialog" aria-labelledby="settingsTitle" aria-modal="true">
+    <form method="dialog" class="dialog__content">
+      <header class="dialog__header">
+        <h3 id="settingsTitle">Settings</h3>
+        <button class="icon-btn" value="cancel" aria-label="Close"><span class="material-symbols-rounded">close</span></button>
+      </header>
+
+      <section class="dialog__body">
+        <div class="settings-row">
+          <label class="settings-label">Signed in</label>
+          <div id="settingsEmail" class="settings-value">—</div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="themeSelect">Theme</label>
+          <div class="segmented" role="radiogroup" aria-label="Theme">
+            <input type="radio" id="themeAuto" name="theme" value="auto" checked />
+            <label for="themeAuto">Auto</label>
+            <input type="radio" id="themeLight" name="theme" value="light" />
+            <label for="themeLight">Light</label>
+            <input type="radio" id="themeDark" name="theme" value="dark" />
+            <label for="themeDark">Dark</label>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <label class="settings-label" for="previewRange">Preview length</label>
+          <input id="previewRange" type="range" min="20" max="120" step="5" value="60" />
+          <div class="settings-hint"><span id="previewValue">60</span> characters</div>
+        </div>
+      </section>
+
+      <footer class="dialog__footer">
+        <button class="btn btn-secondary" value="cancel">Cancel</button>
+        <button id="signOutBtn" class="btn btn-danger" value="default">Sign out</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ===== Confirm Dialog (Delete Forever) ===== -->
+  <dialog id="confirmDialog" class="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <form method="dialog" class="dialog__content">
+      <header class="dialog__header">
+        <h3 id="confirmTitle">Delete forever?</h3>
+        <button class="icon-btn" value="cancel" aria-label="Close"><span class="material-symbols-rounded">close</span></button>
+      </header>
+      <section class="dialog__body">
+        <p>This action cannot be undone.</p>
+      </section>
+      <footer class="dialog__footer">
+        <button class="btn btn-secondary" value="cancel">Cancel</button>
+        <button id="confirmOkBtn" class="btn btn-danger" value="default">Delete</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ===== Snackbar / Toasts ===== -->
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite" hidden>
+    <span id="snackbarText">Done</span>
+    <button id="snackbarUndo" class="btn btn-ghost">Undo</button>
+  </div>
+
+  <div id="toast" class="toast" role="alert" aria-live="assertive" hidden>
+    <span id="toastText">Something went wrong</span>
+  </div>
+
+  <!-- ===== Templates ===== -->
+  <template id="msg-item-template">
+    <li class="item" role="listitem" tabindex="0">
+      <label class="select-box show-on-desktop" aria-label="Select message">
+        <input type="checkbox" class="item-select" />
+      </label>
+
+      <div class="avatar avatar--sender" aria-hidden="true">?</div>
+
+      <div class="item-main">
+        <div class="item-top">
+          <span class="sender ellipsis"></span>
+          <time class="time" title=""></time>
+        </div>
+        <div class="snippet ellipsis"></div>
+        <div class="tags" aria-hidden="true"></div>
+      </div>
+
+      <div class="item-actions">
+        <button class="icon-btn star-btn" aria-label="Star">
+          <span class="material-symbols-rounded" aria-hidden="true">star</span>
+        </button>
+        <button class="icon-btn overflow-btn" aria-label="Message actions">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+
+        <!-- Overflow menu per item -->
+        <menu class="menu item-menu" role="menu" aria-label="Message menu" hidden>
+          <button role="menuitem" data-action="mark_unread" class="menu-item">
+            <span class="material-symbols-rounded">mark_email_unread</span> Mark as unread
+          </button>
+          <button role="menuitem" data-action="archive" class="menu-item">
+            <span class="material-symbols-rounded">archive</span> Archive
+          </button>
+          <button role="menuitem" data-action="trash" class="menu-item">
+            <span class="material-symbols-rounded">delete</span> Move to trash
+          </button>
+        </menu>
+      </div>
+    </li>
+  </template>
+
+  <!-- ===== Accessibility helper (keyboard shortcuts) ===== -->
+  <div id="kbdHelp" class="kbd-help" hidden>
+    <ul>
+      <li><kbd>/</kbd> Focus search</li>
+      <li><kbd>j</kbd>/<kbd>k</kbd> Next/Prev</li>
+      <li><kbd>r</kbd> Read/Unread</li>
+      <li><kbd>s</kbd> Star</li>
+      <li><kbd>Del</kbd> Delete</li>
+    </ul>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="script.js" defer></script>
+</body>
+</html>
