@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMS Sync &mdash; Secure Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section
+        class="view view--login active"
+        id="loginView"
+        aria-hidden="false"
+      >
+        <div class="login-layout">
+          <div class="phone-preview" aria-hidden="true">
+            <div class="phone-preview__inner">
+              <div class="phone-status-bar">
+                <span class="phone-time">9:41</span>
+                <div class="phone-status-icons">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+              </div>
+              <div class="phone-thread">
+                <div class="bubble bubble--incoming">
+                  <h3>SMS Sync</h3>
+                  <p>
+                    Welcome back! Use your secure credentials to keep your customer
+                    conversations in perfect sync.
+                  </p>
+                  <time>Just now</time>
+                </div>
+                <div class="bubble bubble--outgoing">
+                  <p>
+                    On it. Let me grab my inbox so I never miss another message.
+                  </p>
+                  <time>09:39</time>
+                </div>
+                <div class="bubble bubble--incoming">
+                  <p>
+                    Great! Tap the sign-in button and we will reconnect your SMS
+                    workspace instantly.
+                  </p>
+                  <time>09:39</time>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="login-card">
+            <div class="login-card__header">
+              <span class="pill">SMS Sync</span>
+              <h1>Sign in to your inbox</h1>
+              <p>
+                Manage conversations, track replies, and collaborate with your
+                team from one secure hub.
+              </p>
+            </div>
+            <form class="form" id="loginForm" novalidate>
+              <div class="form__field">
+                <label for="email">Email address</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  inputmode="email"
+                  autocomplete="username"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+              <div class="form__field">
+                <label for="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  autocomplete="current-password"
+                  placeholder="Enter your password"
+                  required
+                  minlength="6"
+                />
+              </div>
+              <div class="form__extras">
+                <label class="checkbox">
+                  <input type="checkbox" id="remember" name="remember" />
+                  <span>Remember me next time</span>
+                </label>
+                <a class="subtle-link" href="#" aria-disabled="true"
+                  >Need help?</a
+                >
+              </div>
+              <button type="submit" class="button button--primary">
+                Sign in
+              </button>
+              <p class="form__hint">
+                Demo credentials: <strong>isubrat@icloud.com</strong> &middot;
+                <strong>subrat@1234</strong>
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+      <section class="view view--inbox" id="inboxView" aria-hidden="true">
+        <header class="inbox-header">
+          <div class="inbox-header__info">
+            <div class="badge">Live</div>
+            <div>
+              <h2>Inbox overview</h2>
+              <p>
+                You are connected as <strong id="userEmail">&nbsp;</strong>
+              </p>
+            </div>
+          </div>
+          <button type="button" id="logoutButton" class="button button--ghost">
+            Log out
+          </button>
+        </header>
+        <section class="chat-window" aria-live="polite">
+          <div class="chat-thread" id="chatThread">
+            <div class="bubble bubble--incoming">
+              <h3>Lisa</h3>
+              <p>
+                Hey! Thanks for following up so quickly. The delivery is on time
+                for tomorrow, right?
+              </p>
+              <time>09:12</time>
+            </div>
+            <div class="bubble bubble--outgoing">
+              <p>Absolutely. Driver picks it up at 7am and you&apos;ll get an ETA.</p>
+              <time>09:13</time>
+            </div>
+            <div class="bubble bubble--incoming">
+              <p>
+                Perfect! Could you also confirm the invoice was sent to my email?
+              </p>
+              <time>09:14</time>
+            </div>
+          </div>
+        </section>
+        <form class="composer" id="messageForm" autocomplete="off">
+          <input
+            type="text"
+            id="messageInput"
+            name="message"
+            placeholder="Type a reply..."
+            aria-label="Type a reply"
+          />
+          <button type="submit" class="button button--primary">Send</button>
+        </form>
+      </section>
+    </main>
+    <div class="toast" id="feedback" role="status" aria-live="polite"></div>
+  </body>
+</html>
