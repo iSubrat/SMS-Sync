@@ -17,15 +17,20 @@
   const messageInput = document.getElementById('messageInput');
 
   let toastTimeout;
+  let hasAutoLoggedIn = false;
 
   const storedCredentials = getStoredCredentials();
   if (storedCredentials) {
     emailInput.value = storedCredentials.email;
     passwordInput.value = storedCredentials.password;
     rememberCheckbox.checked = true;
+    showInbox(storedCredentials.email, true);
+    hasAutoLoggedIn = true;
   }
 
-  window.setTimeout(() => emailInput.focus(), 150);
+  if (!hasAutoLoggedIn) {
+    window.setTimeout(() => emailInput.focus(), 150);
+  }
 
   loginForm.addEventListener('submit', (event) => {
     event.preventDefault();
