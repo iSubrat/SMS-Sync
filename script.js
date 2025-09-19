@@ -23,10 +23,9 @@
     emailInput.value = storedCredentials.email;
     passwordInput.value = storedCredentials.password;
     rememberCheckbox.checked = true;
-    showInbox(storedCredentials.email, true);
-  } else {
-    window.setTimeout(() => emailInput.focus(), 150);
   }
+
+  window.setTimeout(() => emailInput.focus(), 150);
 
   loginForm.addEventListener('submit', (event) => {
     event.preventDefault();

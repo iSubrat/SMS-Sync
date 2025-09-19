@@ -330,10 +330,14 @@ body::before {
 }
 
 .view--inbox {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 1.75rem;
   min-height: 540px;
+}
+
+.view--inbox.active {
+  display: flex;
 }
 
 .inbox-header {
